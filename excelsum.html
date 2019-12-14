@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title></title>
+    <script src="./js/excel.js"></script>
+  </head>
+
+  <body>
+    <div>
+      <p>一月</p>
+      <input type="file" id="file1" onchange="sendfile(this,1)" />
+      <div id="zzdemo1"></div>
+      <p>二月</p>
+      <input type="file" id="file2" onchange="sendfile(this,2)" />
+      <div id="zzdemo2"></div>
+      <p>三月</p>
+      <input type="file" id="file3" onchange="sendfile(this,3)" />
+      <div id="zzdemo3"></div>
+      <p>四月</p>
+      <input type="file" id="file4" onchange="sendfile(this,4)" />
+      <div id="zzdemo4"></div>
+      <p>五月</p>
+      <input type="file" id="file5" onchange="sendfile(this,5)" />
+      <div id="zzdemo5"></div>
+      <p>六月</p>
+      <input type="file" id="file6" onchange="sendfile(this,6)" />
+      <div id="zzdemo6"></div>
+      <p>七月</p>
+      <input type="file" id="file7" onchange="sendfile(this,7)" />
+      <div id="zzdemo7"></div>
+      <p>八月</p>
+      <input type="file" id="file8" onchange="sendfile(this,8)" />
+      <div id="zzdemo8"></div>
+      <p>九月</p>
+      <input type="file" id="file9" onchange="sendfile(this,9)" />
+      <div id="zzdemo9"></div>
+      <p>十月</p>
+      <input type="file" id="file10" onchange="sendfile(this,10)" />
+      <div id="zzdemo10"></div>
+      <p>十一月</p>
+      <input type="file" id="file11" onchange="sendfile(this,11)" />
+      <div id="zzdemo11"></div>
+      <p>十二月</p>
+      <input type="file" id="file12" onchange="sendfile(this,12)" />
+      <div id="zzdemo12"></div>
+      <br /><br /><br />
+      <button onclick="caculateFun()">计算总表</button>
+    </div>
+
+    <script>
+      var DataArr = [
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" },
+        { data: "" }
+      ];
+      var zzexcel;
+      var navArr = ["人员", "底薪", "上午", "中午", "下午", "晚上","白天","黑夜","皇后","太子","我","吗","你","他","有"];
+      var nlen = navArr.length;
+      // 渲染页面
+
+      function sendfile(obj, index) {
+        alert(index);
+        if (
+          document
+            .getElementById(`zzdemo${index}`)
+            .innerHTML.includes("月上传成功")
+        ) {
+          alert("一个月份只能上传一个文件,所有数据重新上传");
+          window.location.reload(true);
+          return;
+        }
+        if (!obj.files) {
+          return;
+        }
+        var f = obj.files[0];
+        var reader = new FileReader();
+        reader.readAsBinaryString(f);
+        reader.onload = function(e) {
+          var data = e.target.result;
+          zzexcel = XLSX.read(data, {
+            type: "binary"
+          });
+
+          document.getElementById(
+            `zzdemo${index}`
+          ).innerHTML += `${index}月上传成功`;
+          DataArr[index - 1].data = XLSX.utils.sheet_to_json(
+            zzexcel.Sheets[zzexcel.SheetNames[0]]
+          );
+        };
+      }
+      function caculateFun() {
+        let arr = DataArr[11].data;
+        for (let item in arr) {
+          let name = arr[item][navArr[0]];
+          for (let i = 0; i < 11; i++) {
+            // if(!DataArr[i].data){
+            //     continue;
+            // }
+            let data = DataArr[i].data;
+            let datalength = data.length;
+            for (let j = 0; j < datalength; j++) {
+              if (data[j][navArr[0]] == name) {
+                for (let n = 1; n < nlen; n++) {
+                  arr[item][navArr[n]] =
+                    arr[item][navArr[n]] * 1 + data[j][navArr[n]] * 1;
+                }
+              }
+            }
+          }
+          // let name = arr[item].人员;
+        }
+        DataArr[11].data = arr;
+        JSONToExcelConvertor(DataArr[11].data, "总报表");
+        alert("计算完毕");
+      }
+      // 导出
+      function JSONToExcelConvertor(JSONData, FileName) {
+        //先转化json
+        let arrData =
+          typeof JSONData != "object" ? JSON.parse(JSONData) : JSONData;
+        let title = "";
+        for (let i = 0; i < nlen; i++) {
+          title += `<td>${navArr[i]}</td>`;
+        }
+        let text = "";
+        for (let j = 0, textlen = arrData.length; j < textlen; j++) {
+          let textItem = "";
+          for (let n = 0; n < nlen; n++) {
+            textItem += `<td>${arrData[j][navArr[n]]}</td>`;
+          }
+          text += `
+                    <tr>
+                        ${textItem}
+                    </tr>
+                    `;
+        }
+        let excel = `<table>
+                        <tr>
+                          ${title}            
+                        </tr>
+                        ${text}
+                    </table>`;
+        let excelFile =
+          "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>";
+        excelFile +=
+          '<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">';
+        excelFile +=
+          '<meta http-equiv="content-type" content="application/vnd.ms-excel';
+        excelFile += '; charset=UTF-8">';
+        excelFile += "<head>";
+        excelFile += "<!--[if gte mso 9]>";
+        excelFile += "<xml>";
+        excelFile += "<x:ExcelWorkbook>";
+        excelFile += "<x:ExcelWorksheets>";
+        excelFile += "<x:ExcelWorksheet>";
+        excelFile += "<x:Name>";
+        excelFile += "sheet1";
+        excelFile += "</x:Name>";
+        excelFile += "<x:WorksheetOptions>";
+        excelFile += "<x:DisplayGridlines/>";
+        excelFile += "</x:WorksheetOptions>";
+        excelFile += "</x:ExcelWorksheet>";
+        excelFile += "</x:ExcelWorksheets>";
+        excelFile += "</x:ExcelWorkbook>";
+        excelFile += "</xml>";
+        excelFile += "<![endif]-->";
+        excelFile += "</head>";
+        excelFile += "<body>";
+        excelFile += excel;
+        excelFile += "</body>";
+        excelFile += "</html>";
+        let uri =
+          "data:application/vnd.ms-excel;charset=utf-8," +
+          encodeURIComponent(excelFile);
+        let link = document.createElement("a");
+        link.href = uri;
+        link.style = "visibility:hidden";
+        link.download = FileName + ".xls";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    </script>
+  </body>
+</html>
