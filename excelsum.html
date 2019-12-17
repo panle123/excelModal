@@ -5,7 +5,17 @@
     <title></title>
     <script src="./js/excel.js"></script>
   </head>
-
+  <style>
+    table, th, td
+    {
+    border: 1px solid #000;
+    border-collapse:collapse;
+    }
+    td
+    {
+    text-align:center;
+    }
+  </style>
   <body>
     <div>
       <p>一月</p>
@@ -64,12 +74,12 @@
         { data: "" }
       ];
       var zzexcel;
-      var navArr = ["人员", "底薪", "上午", "中午", "下午", "晚上","白天","黑夜","皇后","太子","我","吗","你","他","有"];
+      var navArr = ["浙江惠迪森药业有限公司","__EMPTY", "__EMPTY_1", "__EMPTY_2", "__EMPTY_3", "__EMPTY_4", "__EMPTY_5","__EMPTY_6","__EMPTY_7","__EMPTY_8","__EMPTY_9","__EMPTY_10","__EMPTY_11","__EMPTY_12","__EMPTY_13","__EMPTY_14","__EMPTY_15","__EMPTY_16","__EMPTY_17","__EMPTY_18","__EMPTY_19","__EMPTY_20","__EMPTY_21","__EMPTY_22","__EMPTY_23","__EMPTY_24","__EMPTY_25","__EMPTY_26","__EMPTY_27","__EMPTY_28","__EMPTY_29","__EMPTY_30","__EMPTY_31","__EMPTY_32"];
       var nlen = navArr.length;
       // 渲染页面
 
       function sendfile(obj, index) {
-        alert(index);
+        alert(`目前上传${index}月份`);
         if (
           document
             .getElementById(`zzdemo${index}`)
@@ -94,15 +104,36 @@
           document.getElementById(
             `zzdemo${index}`
           ).innerHTML += `${index}月上传成功`;
-          DataArr[index - 1].data = XLSX.utils.sheet_to_json(
-            zzexcel.Sheets[zzexcel.SheetNames[0]]
-          );
+          let arr = XLSX.utils.sheet_to_json(
+             zzexcel.Sheets[zzexcel.SheetNames[0]]
+           )
+           arr.splice(0,5);
+          //  arr.splice(arr.length-1,arr.length);
+          DataArr[index - 1].data = arr;
+          console.log(DataArr);
         };
       }
       function caculateFun() {
-        let arr = DataArr[11].data;
-        for (let item in arr) {
-          let name = arr[item][navArr[0]];
+        let arr = [];
+        for (var item in DataArr[11].data){
+          arr[item] = DataArr[11].data[item];
+        } 
+        for (let n = 0; n < 11; n++) {
+          if(!DataArr[n].data){
+                continue;
+            }
+          for (let m = 4; m < nlen-1; m++) {
+            // console.log(n)
+            // console.log(m)
+            // console.log(arr[arr.length-1][navArr[m]],111)
+            // console.log(DataArr[n].data[DataArr[n].data.length-1][navArr[m]],222)
+            arr[arr.length-1][navArr[m]] = arr[arr.length-1][navArr[m]] * 1 + DataArr[n].data[DataArr[n].data.length-1][navArr[m]] * 1;
+            }
+        }
+        console.log(arr)
+        // return;
+        for (let item = 0,len=arr.length;item<len-1;item++) {
+          let name = arr[item][navArr[1]];
           for (let i = 0; i < 11; i++) {
             // if(!DataArr[i].data){
             //     continue;
@@ -110,8 +141,8 @@
             let data = DataArr[i].data;
             let datalength = data.length;
             for (let j = 0; j < datalength; j++) {
-              if (data[j][navArr[0]] == name) {
-                for (let n = 1; n < nlen; n++) {
+              if (data[j][navArr[1]] == name) {
+                for (let n = 4; n < nlen-1; n++) {
                   arr[item][navArr[n]] =
                     arr[item][navArr[n]] * 1 + data[j][navArr[n]] * 1;
                 }
@@ -129,12 +160,41 @@
         //先转化json
         let arrData =
           typeof JSONData != "object" ? JSON.parse(JSONData) : JSONData;
-        let title = "";
-        for (let i = 0; i < nlen; i++) {
-          title += `<td>${navArr[i]}</td>`;
-        }
+
+        let head = `
+        <tr>
+          <td rowspan="3">序号</td>
+          <td rowspan="3">姓名</td>
+          <td rowspan="3">部门</td>
+          <td rowspan="3">职务</td>
+          <td rowspan="3">基本工资</td>
+          <td rowspan="3">职务∕岗位工资</td>
+          <td rowspan="3">岗位津贴</td>
+          <td rowspan="3">工资小计</td>
+          <td rowspan="2" colspan="7">奖金津贴 </td>
+          <td rowspan="3">奖金津贴  小计</td>
+          <td rowspan="2" colspan="3">其他补贴</td>
+          <td rowspan="3">补贴小计</td>
+          <td rowspan="3">欠班扣款</td>
+          <td rowspan="3">其他扣款</td>
+          <td rowspan="3">工资合计</td>
+          <td colspan="7">代扣款项</td>
+          <td rowspan="3">其他小计</td>
+          <td rowspan="3">扣款合计</td>
+          <td rowspan="3">实发工资</td>
+          <td rowspan="3">备注</td>
+        </tr>
+        <tr>
+          <td colspan="4">福利代扣</td><td rowspan="2">福利小计</td><td colspan="2">其他代扣</td>
+        </tr>
+        <tr>
+          <td>学历津贴</td><td>职称津贴</td>
+          <td>先锋津贴</td><td>工龄津贴</td><td>夜班津贴</td><td>销售奖</td><td>项目奖</td><td>加班工资</td><td>餐补</td><td>其他补贴</td><td>养老</td><td>失业</td>
+          <td>医疗</td><td>公积金</td><td>个税</td><td>工会费</td>
+        </tr>
+      `
         let text = "";
-        for (let j = 0, textlen = arrData.length; j < textlen; j++) {
+        for (let j = 0, textlen = arrData.length-1; j < textlen; j++) {
           let textItem = "";
           for (let n = 0; n < nlen; n++) {
             textItem += `<td>${arrData[j][navArr[n]]}</td>`;
@@ -145,11 +205,14 @@
                     </tr>
                     `;
         }
+        let sumText = '';
+        for (let n = 4; n < nlen; n++) {
+            sumText += `<td>${arrData[arrData.length-1][navArr[n]]}</td>`;
+          }
         let excel = `<table>
-                        <tr>
-                          ${title}            
-                        </tr>
+                        ${head}
                         ${text}
+                        <tr><td colspan="4">总工资合计</td>${sumText}</tr>
                     </table>`;
         let excelFile =
           "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>";
